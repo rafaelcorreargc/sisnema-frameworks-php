@@ -65,35 +65,47 @@ abstract class BancoDados {
 		$this->_conn = new mysqli(
 			$this->getservidor(),
 			$this->getusuario(),
-			$this->getsenha()
-		
-		);
-		
+			$this->getsenha(),
+			$this->getbanco()
+			);
 		
 		} else {
 		
 			return $this->_conn;
 		
 		}
-	
-	
 	}
 	
 	public function SetPorta($_porta) {
 	}
 
+	public function getbanco(){
 	
-
-	public function SetBanco($_banco) {
+		return $this->_Banco;
+	
+	}
+	public function setBanco($_banco) {
+	
+	$this->_Banco = $_banco;
+	
 	}
 
 	public function startTransaction() {
+	
+	$this->executaSQL('START TRANSACTION');
+	
 	}
 
 	public function commit() {
+	
+	$this->executaSQL('commit');
+	
 	}
 
 	public function ROLLBACK() {
+	
+	$this->executaSQL('ROLLBACK');
+	
 	}
 
 	protected function isSELECT($_sql,$_res) {
@@ -145,12 +157,36 @@ abstract class BancoDados {
 
 class mysql extends BancoDados {
 	
-   public function __construct(){
-	$this->setservidor('localhost');
-	$this->setusuario('root');
-	$this->setsenha('');
+   public function __construct($host = null, $user = null, $pwd = null, $base = null){
+	$this->setservidor($host);
+	$this->setusuario($user);
+	$this->setsenha($pwd);
+	$this->setBanco($base);
    
    } 
+   
+   public function insert($nomeDaTabela, $arrCampos, $arrValores){
+   
+   $strCampos = implode(',',$arrCampos);
+   
+   function test_alter(&$item1)
+   { $item1 = "'$item1'";}
+   
+   array_walk($arrValores, 'test_alter');
+   
+   $strValores = implode(',',$arrValores);
+   
+   $sqlToInsert = "insert into $nomeDaTabela($strCampos) values ($strValores)";
+   
+   
+ $this->startTransaction();
+$statusInsert = $this->executaSQL($sqlToInsert);
+$this->commit();
+   
+return $statusInsert;
+   
+   
+   }
    
    public function Conectar(){
 	return $this->getconn();
